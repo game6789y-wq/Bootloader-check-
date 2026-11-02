@@ -133,7 +133,14 @@ fun MainScreen(
                                 letterSpacing = 0.5.sp
                             )
                             Text(
-                                text = "Bootloader & Attestation Inspector",
+                                text = listOf(
+                                    "Security overview",
+                                    "Bootloader integrity",
+                                    "Root & system integrity",
+                                    "App attestation",
+                                    "Risk assessment",
+                                    "Hardware profile"
+                                ).getOrElse(selectedTab) { "Device security inspector" },
                                 fontSize = 11.sp,
                                 color = CyberTextTertiary
                             )

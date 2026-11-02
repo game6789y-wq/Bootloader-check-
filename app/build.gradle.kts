@@ -10,6 +10,10 @@ plugins {
 
 android {
   namespace = "com.example"
+
+  sourceSets {
+    getByName("main").jniLibs.srcDirs("src/main/jniLibs")
+  }
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {

@@ -75,7 +75,7 @@ jobs:
           retention-days: 30
 
       - name: Publish prerelease for manual runs only
-        if: github.event_name == 'workflow_dispatch'
+        if: success()
         uses: softprops/action-gh-release@v2
         with:
           tag_name: bootcheck-debug-${{ github.run_number }}

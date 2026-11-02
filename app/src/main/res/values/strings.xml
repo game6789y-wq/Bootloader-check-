@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BootCheck</string>
+    <string name="tab_overview">Overview</string>
+    <string name="tab_bootloader">Bootloader</string>
+    <string name="tab_root_tamper">Root &amp; Integrity</string>
+    <string name="tab_appcheck">App Check</string>
+    <string name="tab_simulation">Risk Impact</string>
+</resources>

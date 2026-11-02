@@ -1,0 +1,6 @@
+{
+  "name": "BootCheck",
+  "description": "Professional bootloader security, verified boot audit, root detection, and App Check device attestation inspector.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

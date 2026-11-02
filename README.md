@@ -3,66 +3,82 @@
 
 # 🛡️ BootCheck
 
-### Android bootloader & device-state checker
+### Android Bootloader & Device-State Checker
 
-A lightweight Android app project for exploring device and bootloader status.
+**Understand your device's reported boot state — right from Android.**
 
-[![Android APK Build](https://github.com/game6789y-wq/Bootloader-check-/actions/workflows/android-apk.yml/badge.svg?branch=main)](https://github.com/game6789y-wq/Bootloader-check-/actions/workflows/android-apk.yml)
-[![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
-[![Language](https://img.shields.io/badge/language-Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
-[![Build](https://img.shields.io/badge/build-Gradle-02303A?logo=gradle&logoColor=white)](https://gradle.org/)
+<p>
+  <a href="https://github.com/game6789y-wq/Bootloader-check-/actions/workflows/android-apk.yml">
+    <img src="https://github.com/game6789y-wq/Bootloader-check-/actions/workflows/android-apk.yml/badge.svg?branch=main" alt="Android APK Build">
+  </a>
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white" alt="Android">
+  <img src="https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin">
+  <img src="https://img.shields.io/badge/Rust-Native%20module-000000?logo=rust&logoColor=white" alt="Rust native module">
+  <img src="https://img.shields.io/badge/Build-Gradle-02303A?logo=gradle&logoColor=white" alt="Gradle">
+</p>
 
-[⬇️ Get the latest test APK](https://github.com/game6789y-wq/Bootloader-check-/releases/latest) · [⚙️ Build workflow](https://github.com/game6789y-wq/Bootloader-check-/actions) · [🐛 Report an issue](https://github.com/game6789y-wq/Bootloader-check-/issues)
+[**⬇️ Download test APK**](https://github.com/game6789y-wq/Bootloader-check-/releases/latest)
+· [Build history](https://github.com/game6789y-wq/Bootloader-check-/actions)
+· [Report a bug](https://github.com/game6789y-wq/Bootloader-check-/issues)
 
 </div>
 
 ---
 
-## ✨ About
+## ✨ About BootCheck
 
-**BootCheck** is an Android application project focused on checking and presenting device bootloader-related information. It is built with Android tooling and automated GitHub Actions so a test APK can be generated and its signature verified consistently.
+BootCheck is an Android app project that checks selected system properties related to bootloader and verified-boot state, then evaluates the available signals to present an informational result.
 
-> **Please note:** Device-state checks can be limited by Android version, device manufacturer, permissions, and system restrictions. Treat results as informational indicators—not as a substitute for a trusted device-integrity or security attestation service.
+The project combines **Kotlin** for Android-side logic with a **Rust native module** and uses GitHub Actions to automate testing, APK building, and signature verification.
 
-## 📲 Download
+> [!IMPORTANT]
+> **Results are indicators, not a security guarantee.** Android versions, device manufacturers, access restrictions, and unavailable or conflicting system properties can affect what the app can determine. A successful build does not by itself prove that detection is accurate on every physical device.
 
-The latest available build is currently a **Debug Pre-release** intended for testing.
+## 📥 Try the latest test build
 
-1. Open the [latest release page](https://github.com/game6789y-wq/Bootloader-check-/releases/latest).
+The latest published build is a **Debug Pre-release** for testing.
+
+1. Open the [latest release](https://github.com/game6789y-wq/Bootloader-check-/releases/latest).
 2. Download `app-debug.apk`.
-3. Review the release notes before installing.
+3. Review the release notes and verification files before installing.
 
-Debug builds are test builds and are **not production-signed releases**. Android may show a warning when installing an APK downloaded outside the Play Store. Install only if you trust the source.
+Debug APKs are intended for development and testing, not as production-signed releases. Android may warn you when installing apps from outside the Play Store; install only if you trust the source.
 
-## 🔍 Build verification
+## 🔎 What CI checks
 
-The automated workflow:
+The GitHub Actions workflow is configured to:
 
-- Builds the Android debug APK.
-- Verifies the APK signature with Android's `apksigner`.
-- Exports the signing-certificate details.
-- Generates a SHA-256 checksum.
-- Uploads the APK and verification files to the GitHub Release.
+- Run Rust tests.
+- Build the Rust Android native library.
+- Run Android unit tests and assemble the debug APK.
+- Verify the APK signature.
+- Publish certificate information and a SHA-256 checksum with the test release.
 
-Available verification files are listed alongside the APK on the [Releases page](https://github.com/game6789y-wq/Bootloader-check-/releases).
+Check the [workflow runs](https://github.com/game6789y-wq/Bootloader-check-/actions) for the result of a specific build. These checks validate the build pipeline; **real-device installation and detection still need device-level testing**.
 
-## 🧰 Technology
+## 🧩 Technology stack
 
-| Component | Details |
+| Area | Technology |
 | --- | --- |
-| Platform | Android |
-| Language | Kotlin |
-| Build system | Gradle |
+| Android app | Kotlin |
+| Native evaluation module | Rust |
+| Android build | Gradle |
 | Automation | GitHub Actions |
-| Test package | Debug APK |
-| Minimum Android version | Android 7.0 (API 24), as configured by the project |
+| Test distribution | Debug APK |
+| Minimum Android version | Android 7.0 (API 24), as configured in the project |
 
-## 🏗️ Build from source
+## 🛠️ Build from source
 
-You can build the debug APK in an Android development environment with a compatible JDK, Android SDK, and Gradle installation.
+Build in an environment with a compatible JDK, Android SDK, Rust toolchain, and the Android Rust target/tooling required by the workflow.
+
+The repository's GitHub Actions workflow is the reference for the complete build sequence:
+
+[**View the Android APK workflow →**](https://github.com/game6789y-wq/Bootloader-check-/blob/main/.github/workflows/android-apk.yml)
+
+For a standard Gradle debug build after the required native library is available:
 
 ```bash
-gradle assembleDebug
+./gradlew assembleDebug
 ```
 
 The APK is normally generated at:
@@ -71,32 +87,34 @@ The APK is normally generated at:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-You can also view the latest automated build under [GitHub Actions](https://github.com/game6789y-wq/Bootloader-check-/actions).
+## 🔐 Signing & download verification
 
-## 🔐 Signing & security
+- CI creates a debug-signed APK for testing.
+- Debug signing is not a stable production signing identity.
+- The release includes certificate details and a SHA-256 checksum when those assets are available.
+- Compare the checksum and certificate information when validating a downloaded APK.
+- Never post keystores, signing passwords, access tokens, or other secrets in issues or chat.
 
-- CI uses a generated **Android debug keystore** for test builds.
-- Debug signing is suitable for development and testing, not as a stable production signing identity.
-- Do not share keystores, passwords, access tokens, or signing secrets in issues or chat.
-- Verify the release checksum and certificate information when validating a downloaded APK.
+## 🐞 Feedback & contributions
 
-## 🤝 Contributing
+Found a problem or have an idea? Please [open an issue](https://github.com/game6789y-wq/Bootloader-check-/issues) and include, when relevant:
 
-Suggestions, bug reports, and improvements are welcome. Please include your Android version, device model, and relevant logs when reporting a problem. **Never include personal data, credentials, or private signing material.**
+- Device model and Android version
+- The result shown by the app
+- Steps to reproduce and relevant, sanitized logs
 
-- [Open an issue](https://github.com/game6789y-wq/Bootloader-check-/issues)
-- [Browse source code](https://github.com/game6789y-wq/Bootloader-check-)
+Please remove personal information and credentials from logs before sharing.
 
 ## 📄 License
 
-No license file is currently provided in this repository. Unless a license is added, reuse and redistribution permissions are not explicitly granted.
+No license file is currently provided. Until a license is added, reuse and redistribution permissions are not explicitly granted.
 
 ---
 
 <div align="center">
 
-**BootCheck** · Android project · Built with GitHub Actions
+**BootCheck** · Android · Kotlin + Rust · GitHub Actions
 
-<sub>If this project is useful, consider starring the repository ⭐</sub>
+If you find this project useful, consider giving the repository a ⭐
 
 </div>

@@ -60,7 +60,8 @@ object BootloaderDetector {
             verifiedBootState == VerifiedBootState.ORANGE || flashLocked == "0" ||
                 vbmetaState.equals("unlocked", ignoreCase = true) || bootLocked == "0" ->
                 BootloaderLockStatus.UNLOCKED
-            verifiedBootState == VerifiedBootState.YELLOW -> BootloaderLockStatus.TAMPERED
+            verifiedBootState == VerifiedBootState.YELLOW || verifiedBootState == VerifiedBootState.RED ->
+                BootloaderLockStatus.TAMPERED
             verifiedBootState == VerifiedBootState.GREEN || flashLocked == "1" ||
                 vbmetaState.equals("locked", ignoreCase = true) || bootLocked == "1" ->
                 BootloaderLockStatus.LOCKED

@@ -39,10 +39,10 @@ pub extern "system" fn Java_com_example_data_detector_NativeBootloaderBridge_nat
     verified: JString,
     vbmeta: JString,
 ) -> jstring {
-    let flash = env.get_string(&flash_locked).map(|s| s.into()).unwrap_or_default();
-    let boot = env.get_string(&boot_locked).map(|s| s.into()).unwrap_or_default();
-    let state = env.get_string(&verified).map(|s| s.into()).unwrap_or_default();
-    let meta = env.get_string(&vbmeta).map(|s| s.into()).unwrap_or_default();
+    let flash: String = env.get_string(&flash_locked).map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    let boot: String = env.get_string(&boot_locked).map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    let state: String = env.get_string(&verified).map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    let meta: String = env.get_string(&vbmeta).map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
     let result = evaluate(&flash, &boot, &state, &meta);
     env.new_string(result).map(|s| s.into_raw()).unwrap_or(std::ptr::null_mut())
 }

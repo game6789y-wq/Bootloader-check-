@@ -6,7 +6,7 @@ fn evaluate(flash_locked: &str, boot_locked: &str, verified: &str, vbmeta: &str)
     let verified = verified.trim().to_ascii_lowercase();
     let vbmeta = vbmeta.trim().to_ascii_lowercase();
 
-    // Explicit negative signals take priority over positive/locked signals.
+    // Explicit unlocked signals take priority over lock indicators.
     if verified == "orange"
         || flash_locked.trim() == "0"
         || boot_locked.trim() == "0"
@@ -14,7 +14,10 @@ fn evaluate(flash_locked: &str, boot_locked: &str, verified: &str, vbmeta: &str)
     {
         return "UNLOCKED";
     }
-    if verified == "yellow" {
+
+    // Yellow indicates a custom root of trust; red indicates verification failure.
+    // Neither should be reported as a clean locked state.
+    if verified == "yellow" || verified == "red" {
         return "TAMPERED";
     }
 
@@ -69,5 +72,15 @@ mod tests {
     #[test]
     fn custom_key_is_tampered() {
         assert_eq!(evaluate("", "", "yellow", ""), "TAMPERED");
+    }
+
+    #[test]
+    fn verification_failure_is_not_reported_as_clean_locked() {
+        assert_eq!(evaluate("1", "1", "red", "locked"), "TAMPERED");
+    }
+
+    #[test]
+    fn verified_state_is_case_insensitive() {
+        assert_eq!(evaluate("", "", " GREEN ", ""), "LOCKED");
     }
 }

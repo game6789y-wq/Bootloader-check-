@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
@@ -203,7 +204,8 @@ fun MainScreen(
                     Triple(1, "Bootloader", Icons.Default.Lock),
                     Triple(2, "Root", Icons.Default.Security),
                     Triple(3, "App Check", Icons.Default.CheckCircle),
-                    Triple(4, "Risk Matrix", Icons.Default.Assessment)
+                    Triple(4, "Risk Matrix", Icons.Default.Assessment),
+                    Triple(5, "Device Specs", Icons.Default.PhoneAndroid)
                 )
 
                 navItems.forEach { (index, label, icon) ->
@@ -344,6 +346,7 @@ fun MainScreen(
                                 matrix = state.impactMatrix,
                                 onShowDetail = { viewModel.showDetail(it) }
                             )
+                            5 -> DeviceSpecsTab()
                         }
                     }
                 }

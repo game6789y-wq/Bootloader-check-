@@ -65,13 +65,14 @@ jobs:
           echo "/tmp/gradle-9.3.1/bin" >> "$GITHUB_PATH"
 
       - name: Build Rust Android libraries
+        working-directory: rust/bootcheck-native
         run: |
           cargo ndk \
             -t arm64-v8a \
             -t armeabi-v7a \
             -t x86_64 \
-            -o app/src/main/jniLibs \
-            build --manifest-path rust/bootcheck-native/Cargo.toml --release
+            -o ../../app/src/main/jniLibs \
+            build --release
 
       - name: Build debug APK
         run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug

@@ -43,24 +43,28 @@ object BootloaderDetector {
             }
         }
 
-        // Determine Lock Status
-        val lockStatus = when {
-            verifiedBootState == VerifiedBootState.ORANGE || flashLocked == "0" || vbmetaState.equals("unlocked", ignoreCase = true) || bootLocked == "0" -> {
+        // Rust evaluates only observed boot properties. Missing data remains UNKNOWN.
+        val lockStatus = NativeBootloaderBridge.evaluate(
+            flashLocked = flashLocked,
+            bootLocked = bootLocked,
+            verifiedBootState = vbStateRaw,
+            vbmetaState = vbmetaState
+        )?.let { nativeResult ->
+            when (nativeResult) {
+                "LOCKED" -> BootloaderLockStatus.LOCKED
+                "UNLOCKED" -> BootloaderLockStatus.UNLOCKED
+                "TAMPERED" -> BootloaderLockStatus.TAMPERED
+                else -> BootloaderLockStatus.UNKNOWN
+            }
+        } ?: when {
+            verifiedBootState == VerifiedBootState.ORANGE || flashLocked == "0" ||
+                vbmetaState.equals("unlocked", ignoreCase = true) || bootLocked == "0" ->
                 BootloaderLockStatus.UNLOCKED
-            }
-            verifiedBootState == VerifiedBootState.YELLOW -> {
-                BootloaderLockStatus.TAMPERED
-            }
-            verifiedBootState == VerifiedBootState.GREEN || flashLocked == "1" || vbmetaState.equals("locked", ignoreCase = true) || bootLocked == "1" -> {
+            verifiedBootState == VerifiedBootState.YELLOW -> BootloaderLockStatus.TAMPERED
+            verifiedBootState == VerifiedBootState.GREEN || flashLocked == "1" ||
+                vbmetaState.equals("locked", ignoreCase = true) || bootLocked == "1" ->
                 BootloaderLockStatus.LOCKED
-            }
-            else -> {
-                if (isLikelyEmulator()) {
-                    BootloaderLockStatus.UNLOCKED
-                } else {
-                    BootloaderLockStatus.LOCKED
-                }
-            }
+            else -> BootloaderLockStatus.UNKNOWN
         }
 
         val socModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -79,44 +83,44 @@ object BootloaderDetector {
         val kernelCmdline = SystemPropertyReader.readProcCmdline()
 
         val allBootProps = linkedMapOf(
-            "ro.boot.verifiedbootstate" to vbStateRaw.ifEmpty { "green" },
-            "ro.boot.flash.locked" to flashLocked.ifEmpty { if (lockStatus == BootloaderLockStatus.LOCKED) "1" else "0" },
-            "ro.boot.vbmeta.device_state" to vbmetaState.ifEmpty { if (lockStatus == BootloaderLockStatus.LOCKED) "locked" else "unlocked" },
-            "ro.boot.avb_version" to avbVersion.ifEmpty { "AVB 2.0" },
-            "ro.boot.slot_suffix" to slotSuffix.ifEmpty { "_a (Seamless A/B)" },
-            "ro.boot.bootloader" to Build.BOOTLOADER.ifEmpty { "OEM-REL-2026" },
+            "ro.boot.verifiedbootstate" to vbStateRaw.ifEmpty { "unavailable" },
+            "ro.boot.flash.locked" to flashLocked.ifEmpty { "unavailable" },
+            "ro.boot.vbmeta.device_state" to vbmetaState.ifEmpty { "unavailable" },
+            "ro.boot.avb_version" to avbVersion.ifEmpty { "unavailable" },
+            "ro.boot.slot_suffix" to slotSuffix.ifEmpty { "unavailable" },
+            "ro.boot.bootloader" to Build.BOOTLOADER.ifEmpty { "unavailable" },
             "ro.boot.hardware" to Build.HARDWARE,
             "ro.boot.serialno" to "[Protected Keymaster Enclave]",
-            "sys.oem_unlock_allowed" to oemUnlockAllowedProp.ifEmpty { "0" },
-            "ro.oem_unlock_supported" to SystemPropertyReader.get("ro.oem_unlock_supported", "1"),
+            "sys.oem_unlock_allowed" to oemUnlockAllowedProp.ifEmpty { "unavailable" },
+            "ro.oem_unlock_supported" to SystemPropertyReader.get("ro.oem_unlock_supported", "unavailable"),
             "ro.treble.enabled" to trebleProp,
             "ro.vndk.version" to SystemPropertyReader.get("ro.vndk.version", Build.VERSION.RELEASE),
             "ro.crypto.state" to SystemPropertyReader.get("ro.crypto.state", "encrypted"),
             "ro.crypto.type" to SystemPropertyReader.get("ro.crypto.type", "file"),
-            "ro.security.fips.ux" to SystemPropertyReader.get("ro.security.fips.ux", "Enabled"),
-            "ro.hardware.keystore" to SystemPropertyReader.get("ro.hardware.keystore", "default")
+            "ro.security.fips.ux" to SystemPropertyReader.get("ro.security.fips.ux", "unavailable"),
+            "ro.hardware.keystore" to SystemPropertyReader.get("ro.hardware.keystore", "unavailable")
         )
 
         return BootloaderInfo(
             lockStatus = lockStatus,
             verifiedBootState = verifiedBootState,
-            rawVerifiedBootState = vbStateRaw.ifEmpty { if (lockStatus == BootloaderLockStatus.LOCKED) "green" else "orange" },
-            flashLockedRaw = flashLocked.ifEmpty { if (lockStatus == BootloaderLockStatus.LOCKED) "1" else "0" },
+            rawVerifiedBootState = vbStateRaw.ifEmpty { "unavailable" },
+            flashLockedRaw = flashLocked.ifEmpty { "unavailable" },
             oemUnlockAllowed = oemUnlockAllowed,
-            avbVersion = avbVersion.ifEmpty { "AVB 2.0 (Cryptographic Hash Tree)" },
-            vbmetaDeviceState = vbmetaState.ifEmpty { if (lockStatus == BootloaderLockStatus.LOCKED) "locked" else "unlocked" },
+            avbVersion = avbVersion.ifEmpty { "unavailable" },
+            vbmetaDeviceState = vbmetaState.ifEmpty { "unavailable" },
             bootloaderVersion = Build.BOOTLOADER.ifEmpty { "unknown" },
             radioVersion = radioVersion,
             board = Build.BOARD,
             hardware = Build.HARDWARE,
             socModel = socModel.ifEmpty { Build.HARDWARE },
             device = Build.DEVICE,
-            slotSuffix = slotSuffix.ifEmpty { "Slot A (Active)" },
+            slotSuffix = slotSuffix.ifEmpty { "unavailable" },
             buildFingerprint = Build.FINGERPRINT,
             allBootProps = allBootProps,
             kernelVersion = kernelVersion,
             trebleCompliant = trebleProp.equals("true", ignoreCase = true) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O,
-            kernelCmdline = kernelCmdline.ifEmpty { "androidboot.verifiedbootstate=green androidboot.flash.locked=1 androidboot.hardware=${Build.HARDWARE}" }
+            kernelCmdline = kernelCmdline.ifEmpty { "unavailable" }
         )
     }
 

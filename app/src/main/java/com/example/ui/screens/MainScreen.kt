@@ -257,11 +257,28 @@ fun MainScreen(
                         label = "screenTransition"
                     ) { targetTab ->
                         when (targetTab) {
-                            0 -> OverviewTab(state.report, { viewModel.showDetail(it) }, { viewModel.selectTab(it) }, viewModel.getExportText())
-                            1 -> BootloaderTab(state.report.bootloader) { viewModel.showDetail(it) }
-                            2 -> RootIntegrityTab(state.report.root) { viewModel.showDetail(it) }
-                            3 -> AppCheckTab(state.report.appCheck) { viewModel.showDetail(it) }
-                            4 -> ImpactMatrixTab(state.impactMatrix) { viewModel.showDetail(it) }
+                            0 -> OverviewTab(
+                                report = state.report,
+                                onShowDetail = { detail -> viewModel.showDetail(detail) },
+                                onNavigateTab = { tab -> viewModel.selectTab(tab) },
+                                exportText = viewModel.getExportText()
+                            )
+                            1 -> BootloaderTab(
+                                bootloader = state.report.bootloader,
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
+                            )
+                            2 -> RootIntegrityTab(
+                                root = state.report.root,
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
+                            )
+                            3 -> AppCheckTab(
+                                appCheck = state.report.appCheck,
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
+                            )
+                            4 -> ImpactMatrixTab(
+                                matrix = state.impactMatrix,
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
+                            )
                             5 -> DeviceSpecsTab()
                         }
                     }

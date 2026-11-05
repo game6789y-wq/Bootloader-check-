@@ -4,14 +4,14 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,20 +26,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,7 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,12 +64,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.ui.components.PropertyDetailSheet
 import com.example.ui.theme.CyberBorder
 import com.example.ui.theme.CyberCyanPrimary
 import com.example.ui.theme.CyberDarkBg
-import com.example.ui.theme.CyberGreenSuccess
-import com.example.ui.theme.CyberOrangeWarning
 import com.example.ui.theme.CyberRedAlert
 import com.example.ui.theme.CyberSurface
 import com.example.ui.theme.CyberSurfaceVariant
@@ -91,13 +89,18 @@ fun MainScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
     val activeDetail by viewModel.activeDetail.collectAsState()
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    BackHandler(enabled = selectedTab > 0) { viewModel.selectTab(0) }
 
-    // BackHandler: Navigate back to Overview tab if user is on secondary tab
-    BackHandler(enabled = selectedTab > 0) {
-        viewModel.selectTab(0)
-    }
+    val isScanning = (uiState as? BootCheckUiState.Success)?.isScanning == true
+    val transition = rememberInfiniteTransition(label = "scanIcon")
+    val scanAngle by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing)),
+        label = "scanRotation"
+    )
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -108,138 +111,79 @@ fun MainScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(CyberCyanPrimary.copy(alpha = 0.15f))
-                                .border(1.dp, CyberCyanPrimary.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(CyberCyanPrimary.copy(alpha = 0.12f))
+                                .border(1.dp, CyberCyanPrimary.copy(alpha = 0.35f), RoundedCornerShape(14.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Shield,
-                                contentDescription = null,
-                                tint = CyberCyanPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            Icon(Icons.Default.Shield, contentDescription = null, tint = CyberCyanPrimary, modifier = Modifier.size(23.dp))
                         }
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Column {
-                            Text(
-                                text = "BootCheck",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Black,
-                                color = CyberTextPrimary,
-                                letterSpacing = 0.5.sp
-                            )
-                            Text(
-                                text = listOf(
-                                    "Security overview",
-                                    "Bootloader integrity",
-                                    "Root & system integrity",
-                                    "App attestation",
-                                    "Risk assessment",
-                                    "Hardware profile"
-                                ).getOrElse(selectedTab) { "Device security inspector" },
-                                fontSize = 11.sp,
-                                color = CyberTextTertiary
-                            )
+                        Spacer(Modifier.width(12.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text("BootCheck", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = CyberTextPrimary, letterSpacing = (-0.3).sp)
+                            Text("DEVICE SECURITY CENTER", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = CyberTextTertiary, letterSpacing = 1.25.sp)
                         }
                     }
                 },
                 actions = {
-                    val isScanning = (uiState as? BootCheckUiState.Success)?.isScanning == true
-                    val infiniteTransition = rememberInfiniteTransition(label = "spin")
-                    val angle by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = 360f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(800, easing = LinearEasing)
-                        ),
-                        label = "spinAngle"
-                    )
-
                     IconButton(
                         onClick = { viewModel.rescan() },
                         enabled = !isScanning,
                         modifier = Modifier.testTag("rescan_app_bar_button")
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Re-scan Device",
-                            tint = CyberCyanPrimary,
-                            modifier = if (isScanning) Modifier.rotate(angle) else Modifier
-                        )
+                        Icon(Icons.Default.Refresh, contentDescription = "Re-scan device", tint = CyberCyanPrimary, modifier = if (isScanning) Modifier.rotate(scanAngle) else Modifier)
                     }
-
                     IconButton(
                         onClick = {
-                            val text = viewModel.getExportText()
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, text)
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                putExtra(Intent.EXTRA_TEXT, viewModel.getExportText())
                                 type = "text/plain"
                             }
-                            context.startActivity(Intent.createChooser(sendIntent, "Share Security Report"))
+                            context.startActivity(Intent.createChooser(sendIntent, "Share security report"))
                         },
                         modifier = Modifier.testTag("share_app_bar_button")
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share Report",
-                            tint = CyberTextSecondary
-                        )
+                        Icon(Icons.Default.Share, contentDescription = "Share report", tint = CyberTextSecondary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CyberDarkBg,
-                    titleContentColor = CyberTextPrimary
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = CyberDarkBg)
             )
         },
         bottomBar = {
             NavigationBar(
                 containerColor = CyberSurface,
-                tonalElevation = 8.dp,
+                tonalElevation = 0.dp,
                 windowInsets = WindowInsets.navigationBars,
                 modifier = Modifier
-                    .border(width = 0.5.dp, color = CyberBorder)
+                    .border(width = 1.dp, color = CyberBorder.copy(alpha = 0.75f))
                     .testTag("bottom_nav_bar")
             ) {
-                val navItems = listOf(
-                    Triple(0, "Overview", Icons.Default.Shield),
-                    Triple(1, "Bootloader", Icons.Default.Lock),
+                val items = listOf(
+                    Triple(0, "Home", Icons.Default.Shield),
+                    Triple(1, "Boot", Icons.Default.Lock),
                     Triple(2, "Root", Icons.Default.Security),
-                    Triple(3, "App Check", Icons.Default.CheckCircle),
-                    Triple(4, "Risk Matrix", Icons.Default.Assessment),
-                    Triple(5, "Device Specs", Icons.Default.PhoneAndroid)
+                    Triple(3, "Apps", Icons.Default.CheckCircle),
+                    Triple(4, "Risks", Icons.Default.Assessment),
+                    Triple(5, "Specs", Icons.Default.PhoneAndroid)
                 )
-
-                navItems.forEach { (index, label, icon) ->
-                    val isSelected = selectedTab == index
+                items.forEach { (index, label, icon) ->
+                    val selected = selectedTab == index
                     NavigationBarItem(
-                        selected = isSelected,
+                        selected = selected,
                         onClick = { viewModel.selectTab(index) },
                         icon = {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Icon(icon, contentDescription = label, modifier = Modifier.size(21.dp))
                         },
                         label = {
-                            Text(
-                                text = label,
-                                fontSize = 10.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
+                            Text(label, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = CyberCyanPrimary,
                             selectedTextColor = CyberCyanPrimary,
                             unselectedIconColor = CyberTextTertiary,
                             unselectedTextColor = CyberTextTertiary,
-                            indicatorColor = CyberCyanPrimary.copy(alpha = 0.15f)
+                            indicatorColor = CyberCyanPrimary.copy(alpha = 0.13f)
                         ),
                         modifier = Modifier.testTag("nav_item_$index")
                     )
@@ -248,110 +192,92 @@ fun MainScreen(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            // Scanning progress indicator
-            val isScanning = (uiState as? BootCheckUiState.Success)?.isScanning == true
             AnimatedVisibility(visible = isScanning) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(CyberSurface)
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                    modifier = Modifier.fillMaxWidth().background(CyberSurfaceVariant).padding(horizontal = 18.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(
-                        text = "Auditing bootloader partitions and attestation tokens...",
-                        fontSize = 11.sp,
-                        color = CyberCyanPrimary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(7.dp).clip(CircleShape).background(CyberCyanPrimary))
+                        Spacer(Modifier.width(8.dp))
+                        Text("SECURITY SCAN IN PROGRESS", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = CyberCyanPrimary)
+                    }
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth().height(2.dp),
+                        modifier = Modifier.fillMaxWidth().height(3.dp).clip(CircleShape),
                         color = CyberCyanPrimary,
                         trackColor = CyberBorder
                     )
                 }
             }
 
-            // Main Content Area
             when (val state = uiState) {
                 is BootCheckUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(
-                                color = CyberCyanPrimary,
-                                modifier = Modifier.size(44.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Inspecting Android Boot Chain...",
-                                color = CyberTextSecondary,
-                                fontSize = 14.sp
-                            )
+                    Box(Modifier.fillMaxSize().padding(28.dp), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                Modifier.size(76.dp).clip(RoundedCornerShape(26.dp)).background(CyberCyanPrimary.copy(alpha = 0.10f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = CyberCyanPrimary, strokeWidth = 3.dp, modifier = Modifier.size(38.dp))
+                            }
+                            Text("Checking your device", style = MaterialTheme.typography.titleLarge, color = CyberTextPrimary)
+                            Text("Reading boot state and system integrity…", style = MaterialTheme.typography.bodyMedium, color = CyberTextSecondary)
                         }
                     }
                 }
                 is BootCheckUiState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Security,
-                                contentDescription = null,
-                                tint = CyberRedAlert,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Scan Failed",
-                                color = CyberTextPrimary,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = state.message,
-                                color = CyberTextSecondary,
-                                fontSize = 13.sp
-                            )
+                    Box(Modifier.fillMaxSize().padding(28.dp), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Default.Security, contentDescription = null, tint = CyberRedAlert, modifier = Modifier.size(44.dp))
+                            Text("Scan could not be completed", style = MaterialTheme.typography.titleLarge, color = CyberTextPrimary)
+                            Text(state.message, style = MaterialTheme.typography.bodyMedium, color = CyberTextSecondary)
+                            Button(
+                                onClick = { viewModel.rescan() },
+                                colors = ButtonDefaults.buttonColors(containerColor = CyberCyanPrimary, contentColor = CyberDarkBg)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Try again", fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
                 is BootCheckUiState.Success -> {
                     AnimatedContent(
                         targetState = selectedTab,
-                        transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(200)) },
-                        label = "tabTransition"
+                        transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                        label = "screenTransition"
                     ) { targetTab ->
                         when (targetTab) {
                             0 -> OverviewTab(
                                 report = state.report,
-                                onShowDetail = { viewModel.showDetail(it) },
-                                onNavigateTab = { viewModel.selectTab(it) },
+                                onShowDetail = { detail -> viewModel.showDetail(detail) },
+                                onNavigateTab = { tab -> viewModel.selectTab(tab) },
                                 exportText = viewModel.getExportText()
                             )
                             1 -> BootloaderTab(
                                 bootloader = state.report.bootloader,
-                                onShowDetail = { viewModel.showDetail(it) }
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
                             )
                             2 -> RootIntegrityTab(
                                 root = state.report.root,
-                                onShowDetail = { viewModel.showDetail(it) }
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
                             )
                             3 -> AppCheckTab(
                                 appCheck = state.report.appCheck,
-                                onShowDetail = { viewModel.showDetail(it) }
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
                             )
                             4 -> ImpactMatrixTab(
                                 matrix = state.impactMatrix,
-                                onShowDetail = { viewModel.showDetail(it) }
+                                onShowDetail = { detail -> viewModel.showDetail(detail) }
                             )
                             5 -> DeviceSpecsTab()
                         }
@@ -361,7 +287,6 @@ fun MainScreen(
         }
     }
 
-    // Property Details Modal Bottom Sheet
     if (activeDetail != null) {
         PropertyDetailSheet(
             detail = activeDetail,

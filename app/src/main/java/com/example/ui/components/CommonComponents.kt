@@ -72,10 +72,10 @@ fun CyberCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(backgroundColor)
-            .border(1.dp, borderColor, RoundedCornerShape(18.dp))
-            .padding(18.dp)
+            .border(1.dp, borderColor.copy(alpha = 0.85f), RoundedCornerShape(22.dp))
+            .padding(20.dp)
     ) {
         content()
     }
